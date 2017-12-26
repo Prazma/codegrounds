@@ -156,6 +156,19 @@
 			}
 
 		</style>
+		<script src='https://cdn.firebase.com/js/client/2.4.0/firebase.js'></script>
+		<script>
+			// Initialize Firebase
+			var config = {
+				apiKey: "AIzaSyB2I_eJJRkUYgAxb9OP24dlLr5505q2aXY",
+				authDomain: "issap-1ab10.firebaseapp.com",
+				databaseURL: "https://issap-1ab10.firebaseio.com",
+				projectId: "issap-1ab10",
+				storageBucket: "issap-1ab10.appspot.com",
+				messagingSenderId: "678107473360"
+			};
+			firebase.initializeApp(config);
+		</script>
 	</head>
 	<body>
 		<div id="preview"></div>
@@ -163,11 +176,18 @@
 		<div id="toolbar"></div>
 		<div id="popup"></div>
 		<script>
+			var myFirebase = new Firebase('https://issap-1ab10.firebaseio.com');
 
 			window.URL = window.URL || window.webkitURL;
 
 			// deflate
 
+			function makePublic() {
+				documents[ 0 ].code = codemirror.getValue();
+				var updateCode = JSON.stringify( documents );
+				myFirebase.push({codecontent: updateCode});
+			}
+			
 			function decode( string ) {
 
 				return RawDeflate.inflate( window.atob( string ) );
@@ -270,6 +290,7 @@
 			buttonUpdate.addEventListener( 'click', function ( event ) {
 
 				update();
+				makePublic();
 
 			}, false );
 			toolbar.appendChild( buttonUpdate );
@@ -675,9 +696,20 @@
 				}
 
 			}
-
+			
+			var startListening = function() {
+				myFirebase.on('child_added', function(snapshot) {
+					var code = snapshot.val();
+					var codebin = code.codecontent;
+					codebin = codebin.replace(/&lt;/g, '<');
+					codebin = codebin.replace(/&gt;/g, '>');
+					localStorage.codeeditor = codebin;
+					location.replace("https://prazma.github.io/codegrounds");
+				});
+			}
+			
+			startListening();
 			update();
-
 		</script>
 	</body>
 </html>
